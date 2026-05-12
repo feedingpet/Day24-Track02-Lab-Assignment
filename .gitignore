@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Security & Data
+data/raw/
+.vault_key
+reports/trufflehog_report.txt
+lab24_submission_*.zip
