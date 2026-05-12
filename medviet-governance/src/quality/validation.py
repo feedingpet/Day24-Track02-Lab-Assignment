@@ -1,80 +1,87 @@
-# src/quality/validation.py
+from pathlib import Path
+
 import pandas as pd
-import great_expectations as gx
+
+try:
+    from great_expectations.dataset import PandasDataset
+except ImportError:
+    PandasDataset = None  # type: ignore[misc, assignment]
+
 from great_expectations.core.expectation_suite import ExpectationSuite
 
+
 def build_patient_expectation_suite() -> ExpectationSuite:
-    """
-    TODO: Tạo expectation suite cho anonymized patient data.
-    """
-    context = gx.get_context()
-    suite = context.add_expectation_suite("patient_data_suite")
+    if PandasDataset is None:
+        raise ImportError(
+            "Great Expectations PandasDataset is unavailable in this version."
+        )
 
-    # Lấy validator
     df = pd.read_csv("data/raw/patients_raw.csv")
-    validator = context.sources.pandas_default.read_dataframe(df)
+    dataset = PandasDataset(df)
 
-    # --- TASK: Thêm các expectations ---
+    dataset.expect_column_values_to_not_be_null("patient_id")
 
-    # 1. patient_id không được null
-    validator.expect_column_values_to_not_be_null("patient_id")
+    dataset.expect_column_value_lengths_to_equal(column="cccd", value=12)
 
-    # 2. TODO: cccd phải có đúng 12 ký tự
-    validator.expect_column_value_lengths_to_equal(
-        column=___,
-        value=___
+    dataset.expect_column_values_to_be_between(
+        column="ket_qua_xet_nghiem",
+        min_value=0,
+        max_value=50,
     )
 
-    # 3. TODO: ket_qua_xet_nghiem phải trong khoảng [0, 50]
-    validator.expect_column_values_to_be_between(
-        column=___,
-        min_value=___,
-        max_value=___
-    )
-
-    # 4. TODO: benh phải thuộc danh sách hợp lệ
     valid_conditions = ["Tiểu đường", "Huyết áp cao", "Tim mạch", "Khỏe mạnh"]
-    validator.expect_column_values_to_be_in_set(
-        column=___,
-        value_set=___
+    dataset.expect_column_values_to_be_in_set(
+        column="benh",
+        value_set=valid_conditions,
     )
 
-    # 5. TODO: email phải match regex pattern
-    validator.expect_column_values_to_match_regex(
+    dataset.expect_column_values_to_match_regex(
         column="email",
-        regex=r"___"    # TODO: email regex
+        regex=r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
 
-    # 6. TODO: Không được có duplicate patient_id
-    validator.expect_column_values_to_be_unique(column=___)
+    dataset.expect_column_values_to_be_unique(column="patient_id")
 
-    validator.save_expectation_suite()
-    return suite
+    return dataset.get_expectation_suite()
 
 
-def validate_anonymized_data(filepath: str) -> dict:
-    """
-    TODO: Validate anonymized data.
-    Trả về dict: {"success": bool, "failed_checks": list, "stats": dict}
-    """
+def validate_anonymized_data(filepath: str, raw_filepath: str | None = None) -> dict:
     df = pd.read_csv(filepath)
-    results = {
+    raw_path = Path(raw_filepath or "data/raw/patients_raw.csv")
+    raw_df = pd.read_csv(raw_path) if raw_path.is_file() else None
+
+    results: dict = {
         "success": True,
         "failed_checks": [],
-        "stats": {
-            "total_rows": len(df),
-            "columns": list(df.columns)
-        }
+        "stats": {"total_rows": len(df), "columns": list(df.columns)},
     }
 
-    # Check 1: Không còn CCCD gốc dạng số thuần túy
-    # (sau anonymization, cccd phải là fake hoặc masked)
-    # TODO: implement check
+    if raw_df is not None and "patient_id" in df.columns and "cccd" in df.columns:
+        merged = df[["patient_id", "cccd"]].merge(
+            raw_df[["patient_id", "cccd"]],
+            on="patient_id",
+            suffixes=("_anon", "_raw"),
+        )
+        leaked = merged[merged["cccd_anon"] == merged["cccd_raw"]]
+        if not leaked.empty:
+            results["success"] = False
+            results["failed_checks"].append(
+                "cccd values unchanged from raw for at least one patient_id"
+            )
 
-    # Check 2: Không có null values trong các cột quan trọng
-    # TODO: implement check
+    important = [
+        c
+        for c in ("patient_id", "ho_ten", "cccd", "email")
+        if c in df.columns
+    ]
+    for col in important:
+        if df[col].isna().any():
+            results["success"] = False
+            results["failed_checks"].append(f"null values found in {col}")
 
-    # Check 3: Số rows phải bằng original
-    # TODO: implement check
+    if raw_df is not None:
+        if len(df) != len(raw_df):
+            results["success"] = False
+            results["failed_checks"].append("row count mismatch vs raw dataset")
 
     return results

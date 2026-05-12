@@ -1,14 +1,18 @@
-presidio-analyzer>=2.2.0
-presidio-anonymizer>=2.2.0
-spacy>=3.5.0
+presidio-analyzer>=2.2.0,<3.0.0
+presidio-anonymizer>=2.2.0,<3.0.0
+# spaCy 3.7.x (tránh 3.8 nếu bạn muốn đồng bộ môi trường). vi_core_news_lg thường không tải được trên Py 3.12 — code dùng blank:vi + underthesea cho PERSON.
+spacy>=3.7.2,<3.8.0
+underthesea>=6.0.0
 faker>=18.0.0
 pandas>=2.0.0
 casbin>=1.17.0
 fastapi>=0.100.0
-uvicorn>=0.22.0
+uvicorn[standard]>=0.22.0
 cryptography>=41.0.0
-great-expectations>=0.17.0
+great-expectations>=0.18.12,<1.0.0
 pytest>=7.0.0
 bandit>=1.7.0
 pip-audit>=2.5.0
 python-multipart>=0.0.6
+prometheus-fastapi-instrumentator>=6.1.0
+python-json-logger>=2.0.7

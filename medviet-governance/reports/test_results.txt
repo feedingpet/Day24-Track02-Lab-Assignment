@@ -1,0 +1,31 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.5, pytest-9.0.3, pluggy-1.6.0 -- D:\VinUni\assignments\Day24-Track02-Lab-Assignment\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\VinUni\assignments\Day24-Track02-Lab-Assignment\medviet-governance
+configfile: pytest.ini
+plugins: anyio-4.13.0, Faker-40.15.0
+collecting ... collected 6 items
+
+tests/test_pii.py::TestPIIDetection::test_cccd_detected PASSED           [ 16%]
+tests/test_pii.py::TestPIIDetection::test_phone_detected PASSED          [ 33%]
+tests/test_pii.py::TestPIIDetection::test_email_detected PASSED          [ 50%]
+tests/test_pii.py::TestPIIDetection::test_detection_rate_above_95_percent PASSED [ 66%]
+tests/test_pii.py::TestAnonymization::test_pii_not_in_output PASSED      [ 83%]
+tests/test_pii.py::TestAnonymization::test_non_pii_columns_unchanged PASSED [100%]
+
+============================== warnings summary ===============================
+..\venv\Lib\site-packages\spacy\cli\_util.py:23
+  D:\VinUni\assignments\Day24-Track02-Lab-Assignment\venv\Lib\site-packages\spacy\cli\_util.py:23: DeprecationWarning: Importing 'parser.split_arg_string' is deprecated, it will only be available in 'shell_completion' in Click 9.0.
+    from click.parser import split_arg_string
+
+tests/test_pii.py::TestPIIDetection::test_cccd_detected
+tests/test_pii.py::TestPIIDetection::test_phone_detected
+tests/test_pii.py::TestPIIDetection::test_email_detected
+tests/test_pii.py::TestPIIDetection::test_detection_rate_above_95_percent
+tests/test_pii.py::TestAnonymization::test_pii_not_in_output
+tests/test_pii.py::TestAnonymization::test_non_pii_columns_unchanged
+  D:\VinUni\assignments\Day24-Track02-Lab-Assignment\medviet-governance\src\pii\detector.py:80: UserWarning: vi_core_news_lg chưa cài — dùng en_core_web_sm cho nhánh 'vi' trong Presidio; PERSON (tiếng Việt) qua underthesea. Trên Python 3.11 có thể thử: python -m spacy download vi_core_news_lg
+    vi_model = _vietnamese_spacy_model_name()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 6 passed, 7 warnings in 46.13s ========================
